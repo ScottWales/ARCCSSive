@@ -23,10 +23,10 @@ import inspect
 import logging
 
 # Sub-commands
-from ARCCSSive.find.command import FindCommand
-commands = [FindCommand()]
+from ARCCSSive.find.command import FindCommand, SpiderCommand
+commands = [FindCommand(), SpiderCommand()]
 
-def main(argv):
+def main(argv=sys.argv[1:]):
     """
     ARCCSS Data Archive Tool
 
@@ -43,12 +43,13 @@ def main(argv):
     for c in commands:
         c.register(subparsers)
 
-    args = parser.parse_args(argv[1:])
+    args = parser.parse_args(argv)
 
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig()
+        logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
     args.func(args)
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()

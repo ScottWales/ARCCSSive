@@ -15,8 +15,10 @@
 # limitations under the License.
 
 import inspect
+import os
 from .db import DB
-from .model import Path
+from .model import Path, Content
+from .checksum import sha1
 
 class FindCommand(object):
     """
@@ -31,8 +33,45 @@ class FindCommand(object):
         """
         Find files
         """
-        db = DB(debug=args.debug)
+        db = DB()
         session = db.session()
 
-        session.add(Path())
+class SpiderCommand(object):
+    """
+    CLI to add paths to the DB
+    """
+
+    def register(self, superparser):
+        parser = superparser.add_parser('spider',description=inspect.getdoc(self.call))
+        parser.set_defaults(func=self.call)
+        parser.add_argument('path', help='Path to scan')
+
+    def call(self, args):
+        """
+        Add paths to the database
+        """
+        db = DB()
+        session = db.session()
+
+        for root, dirs, files in os.walk(args.path):
+            for f in files:
+                p = os.path.realpath(os.path.join(root,f))
+                path = session.query(Path).filter(Path.path == p).one_or_none()
+                if path is not None:
+                    path.update()
+                else:
+                    path = Path(p)
+                    session.add(path)
+                session.commit()
+
+        # Update content
+        for path in session.query(Path).filter(Path.content_id == None):
+            checksum = sha1(path.path)  
+            content = session.query(Content).filter(Content.sha1 == checksum).one_or_none()
+            if content is None:
+                content = Content(path.path, sha1=checksum)
+                session.add(content)
+            path.content = content
+            session.commit()
+
         session.close()

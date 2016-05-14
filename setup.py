@@ -21,7 +21,7 @@ from setuptools import setup, find_packages
 import meta
 
 requirements = [
-        'SQLAlchemy',
+        'SQLAlchemy>=1.0.9',
         'esgf-pyclient',
         'mock',
         'six',
@@ -36,6 +36,12 @@ setup(
                 '': ['data/*'],
             },
         install_requires = requirements,
+
+        entry_points     = {
+            'console_scripts': [
+                'arccssive = ARCCSSive.main:main'
+                ],
+            },
 
         author           = 'Scott Wales',
         author_email     = 'scott.wales@unimelb.edu.au',

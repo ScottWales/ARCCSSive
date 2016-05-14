@@ -18,7 +18,7 @@ from __future__ import print_function
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from . import model
+from .model import Base
 
 class DB(object):
     """
@@ -29,6 +29,7 @@ class DB(object):
         Connect to the database and return a session factory
         """
         self.engine = create_engine(url, echo=debug)
+        Base.metadata.create_all(self.engine)
         self.sessionmaker = sessionmaker(bind=self.engine)
 
     def session(self):
