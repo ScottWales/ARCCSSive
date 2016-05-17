@@ -17,10 +17,11 @@ from __future__ import print_function
 import os
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, Text, DateTime, Boolean, String, ForeignKey
+from sqlalchemy import Column, Integer, Float, Text, DateTime, Boolean, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from . import checksum
+from .rtree import create_rtree
 
 Base = declarative_base()
 
@@ -85,26 +86,9 @@ class Content(Base):
     format_id     = Column(Integer, ForeignKey('format.id'), index=True)
     format        = relationship('Format')
 
-    def __init__(self, path, sha1):
+    def checksum(self, path, sha1):
         self.sha1 = sha1
         self.md5  = checksum.md5(path)
-
-def detect_format(path):
-    """
-    Return a mime type matching the file
-    """
-    with open(path,'rb') as f:
-        buf  = f.read(4096)
-        mime = magic.from_buffer(path, mime=True)
-
-        if mime == 'application/octet-stream; charset=binary':
-            with open(path,'rb') as f:
-                buf = f.read(1024)
-
-                if 
-        else:
-            return mime
-
 
 class Format(Base):
     """
@@ -115,3 +99,43 @@ class Format(Base):
     name          = Column(String, index=True, unique=True)
     mime          = Column(String)
     description   = Column(String)
+
+class FieldBounds(Base):
+    """
+    R*Tree index on bounds
+    """
+    __table__ = create_rtree('fieldbounds',
+            ['minLat','maxLat','minLon','maxLon','minJulian','maxJulian'],
+            Base.metadata)
+
+    def __init__(self,minLat=None,maxLat=None,minLon=None,maxLon=None,minJulian=None,maxJulian=None):
+        self.minLat = minLat
+        self.maxLat = maxLat
+        self.minLon = minLon
+        self.maxLon = maxLon
+        self.minJulian = minJulian
+        self.maxJulian = maxJulian
+
+class FieldMeta(Base):
+    """
+    Represents a field within a file
+    """
+    __tablename__ = 'field'
+    id            = Column(Integer, primary_key=True)
+    variable_id   = Column(Integer, ForeignKey('variable.id'), index=True)
+    content_id    = Column(Integer, ForeignKey('content.id'), index=True)
+    bounds_id     = Column(Integer, ForeignKey(FieldBounds.__table__.c.id), index=True)
+
+    deltaLat      = Column(Float)
+    deltaLon      = Column(Float)
+    deltaDate     = Column(DateTime)
+    minDate       = Column(DateTime)
+    maxDate       = Column(DateTime)
+
+    bounds        = relationship('FieldBounds')
+    variable      = relationship('Variable')
+
+class Variable(Base):
+    __tablename__ = 'variable'
+    id            = Column(Integer, primary_key=True)
+    name          = Column(String, index=True, unique=True)

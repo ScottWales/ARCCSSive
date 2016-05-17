@@ -25,6 +25,8 @@ requirements = [
         'esgf-pyclient',
         'mock',
         'six',
+        'xarray',
+        'netcdf4',
         ]
 
 setup(

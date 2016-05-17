@@ -19,6 +19,7 @@ import os
 from .db import DB
 from .model import Path, Content
 from .checksum import sha1
+from .ingest import load_file
 
 class FindCommand(object):
     """
@@ -71,6 +72,7 @@ class SpiderCommand(object):
             if content is None:
                 content = Content(path.path, sha1=checksum)
                 session.add(content)
+                load_content(content, session)
             path.content = content
             session.commit()
 
