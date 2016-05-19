@@ -4,8 +4,24 @@ python:
     - '2.7'
     - '3.4'
 install:
-    - pip install --upgrade pytest coverage codecov
-    - pip install .
+    - if [[ "$TRAVIS_PYTHON_VERSION" =~ ^2 ]]; then
+        wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+      else
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      fi
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - export PATH="$HOME/miniconda/bin:$PATH"
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    # Useful for debugging any issues with conda
+    - conda info -a
+
+    - conda create -q -n dev python=$TRAVIS_PYTHON_VERSION pip pytest coverage conda-build
+    - source activate dev
+    - conda build conda
+    - conda install ARCCSSive --use-local
+    - pip install codecov
 script:
     - coverage run --source ARCCSSive -m py.test
 after_success:
