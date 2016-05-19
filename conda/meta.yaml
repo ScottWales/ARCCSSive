@@ -31,10 +31,12 @@ requirements:
     - python
     - setuptools
     - sqlalchemy
+    - six
 
   run:
     - python
     - sqlalchemy
+    - six
 
 test:
   # Python imports

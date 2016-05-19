@@ -17,12 +17,12 @@ install:
     # Useful for debugging any issues with conda
     - conda info -a
 
-    - conda create -q -n dev python=$TRAVIS_PYTHON_VERSION pip pytest coverage conda-build
-    - source activate dev
-    - conda build conda
-    - conda install ARCCSSive --use-local
-    - pip install codecov
+    - conda create -q -n conda-env python=$TRAVIS_PYTHON_VERSION pip pytest coverage
+    - source activate conda-env
+    - pip install --upgrade codecov pytest
 script:
+    - conda build conda --python=$TRAVIS_PYTHON_VERSION
+    - conda install ARCCSSive --use-local
     - coverage run --source ARCCSSive -m py.test
 after_success:
     - codecov
