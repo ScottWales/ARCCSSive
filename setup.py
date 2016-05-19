@@ -22,7 +22,7 @@ import meta
 
 requirements = [
         'SQLAlchemy>=1.0.9',
-        'esgf-pyclient',
+        'esgf-pyclient>=0.1.6',
         'mock',
         'six',
         'xarray',
