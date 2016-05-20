@@ -1,2 +1,4 @@
 pip
 sqlalchemy
+xarray
+netCDF4
