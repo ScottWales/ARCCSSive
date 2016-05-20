@@ -16,6 +16,7 @@
 from __future__ import print_function
 import xarray
 import pandas
+import six
 from .model import *
 
 """
@@ -43,7 +44,7 @@ def load_fields(data, session):
     """
     Load all fields within a file
     """
-    for name,var in data.data_vars.iteritems():
+    for name,var in six.iteritems(data.data_vars):
         bounds = FieldBounds()
         meta = FieldMeta()
         meta.variable = one_or_add(session, Variable, name=name)
