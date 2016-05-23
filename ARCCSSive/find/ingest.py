@@ -33,7 +33,7 @@ def load_file(path, content, session):
     """
     High-level file loader
     """
-    with xarray.open_dataset(path,decode_cf=True) as data:
+    with xarray.open_dataset(path,decode_cf=True,decode_times=False) as data:
         content.format = one_or_add(session, Format, name='cf-netcdf')
         load_fields(data, session)
         session.commit()
@@ -47,15 +47,22 @@ def load_fields(data, session):
     for name,var in six.iteritems(data.data_vars):
         bounds = FieldBounds()
         meta = FieldMeta()
-        meta.variable = one_or_add(session, Variable, name=name)
+        meta.variable = one_or_add(session, Variable, name=var.attrs.get('standard_name',name))
         print(var.coords)
 
         if 'lat' in var.dims:
-            bounds.minLat = var.coords['lat'].min()
-            bounds.maxLat = var.coords['lat'].max()
+            bounds.min_lat = var.coords['lat'].min()
+            bounds.max_lat = var.coords['lat'].max()
         if 'lon' in var.dims:
-            bounds.minLon = var.coords['lon'].min()
-            bounds.maxLon = var.coords['lon'].max()
+            bounds.min_lon = var.coords['lon'].min()
+            bounds.max_lon = var.coords['lon'].max()
+        if 'time' in var.dims:
+            meta.calendar     = var.coords['time'].attrs['calendar']
+            meta.time_origin  = var.coords['time'].attrs['units']
+            meta.min_date_num = var.coords['time'].min()
+            meta.max_date_num = var.coords['time'].max()
+            bounds.min_year   = meta.min_date.year
+            bounds.max_year   = meta.max_date.year
 
         session.add(bounds)
         meta.bounds = bounds

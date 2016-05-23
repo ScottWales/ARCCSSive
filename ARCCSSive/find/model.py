@@ -19,6 +19,7 @@ from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Float, Text, DateTime, Boolean, String, ForeignKey
 from sqlalchemy.orm import relationship
+from netcdftime import utime
 
 from . import checksum
 from .rtree import create_rtree
@@ -103,18 +104,23 @@ class Format(Base):
 class FieldBounds(Base):
     """
     R*Tree index on bounds
+
+    Date bounds are stored as Julian days since RTrees require floats
     """
     __table__ = create_rtree('fieldbounds',
-            ['minLat','maxLat','minLon','maxLon','minJulian','maxJulian'],
+            ['min_lat','max_lat','min_lon','max_lon','min_year','max_year'],
             Base.metadata)
 
-    def __init__(self,minLat=None,maxLat=None,minLon=None,maxLon=None,minJulian=None,maxJulian=None):
-        self.minLat = minLat
-        self.maxLat = maxLat
-        self.minLon = minLon
-        self.maxLon = maxLon
-        self.minJulian = minJulian
-        self.maxJulian = maxJulian
+    def __init__(self,
+            min_lat=None,max_lat=None,
+            min_lon=None,max_lon=None,
+            min_year=None,max_year=None):
+        self.min_lat = min_lat
+        self.max_lat = max_lat
+        self.min_lon = min_lon
+        self.max_lon = max_lon
+        self.min_year = min_year
+        self.max_year = max_year
 
 class FieldMeta(Base):
     """
@@ -129,11 +135,24 @@ class FieldMeta(Base):
     deltaLat      = Column(Float)
     deltaLon      = Column(Float)
     deltaDate     = Column(DateTime)
-    minDate       = Column(DateTime)
-    maxDate       = Column(DateTime)
+
+    calendar      = Column(String)
+    time_origin   = Column(String)
+    min_date_num  = Column(Float)
+    max_date_num  = Column(Float)
 
     bounds        = relationship('FieldBounds')
     variable      = relationship('Variable')
+
+    @property
+    def min_date(self):
+        converter = utime(self.time_origin, self.calendar)
+        return converter.num2date(self.min_date_num)
+
+    @property
+    def max_date(self):
+        converter = utime(self.time_origin, self.calendar)
+        return converter.num2date(self.max_date_num)
 
 class Variable(Base):
     __tablename__ = 'variable'

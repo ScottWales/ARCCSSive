@@ -20,7 +20,7 @@ from ARCCSSive.find.db import DB
 
 @pytest.fixture(scope="module")
 def find_db():
-    db = DB(debug=True)
+    db = DB(debug=False)
     return db
 
 @pytest.fixture()

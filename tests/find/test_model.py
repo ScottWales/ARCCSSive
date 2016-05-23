@@ -21,4 +21,4 @@ from fixtures import *
 def test_rtree(find_session):
     bounds = FieldBounds(0.0,1.0,-1.0,5.0,3.0,1e4)
     find_session.add(bounds)
-    assert find_session.query(FieldBounds).filter(FieldBounds.minLat <= 1.0).one()
+    assert find_session.query(FieldBounds).filter(FieldBounds.min_lat <= 1.0).one()
